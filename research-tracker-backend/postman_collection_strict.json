@@ -1,0 +1,403 @@
+{
+  "info": {
+    "_postman_id": "0fc6a0fa-6f50-4407-b4aa-8a4af31d1305",
+    "name": "Research Tracker API (Strict Contract)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Strict schema enforcement collection. No fallbacks in tests."
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('token')) {",
+          "  console.warn('No token set. Run Auth/Login first.');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Researcher",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Has message', () => pm.expect(res.message).to.be.a('string'));",
+                  "pm.test('Has user.id', () => pm.expect(res.user.id).to.be.a('number'));",
+                  "pm.test('Has user.email', () => pm.expect(res.user.email).to.include('@'));",
+                  "pm.test('Role is valid', () => pm.expect(['researcher','admin','reviewer','funding_authority']).to.include(res.user.role));",
+                  "pm.test('No password in response', () => pm.expect(res.user).to.not.have.property('password'));",
+                  "pm.test('No password_hash in response', () => pm.expect(res.user).to.not.have.property('password_hash'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Researcher Alpha\",\n  \"email\": \"researcher.alpha@example.com\",\n  \"password\": \"Password@123\",\n  \"role\": \"researcher\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Register Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Has message', () => pm.expect(res.message).to.be.a('string'));",
+                  "pm.test('Has user.id', () => pm.expect(res.user.id).to.be.a('number'));",
+                  "pm.test('Has user.email', () => pm.expect(res.user.email).to.include('@'));",
+                  "pm.test('Role is valid', () => pm.expect(['researcher','admin','reviewer','funding_authority']).to.include(res.user.role));",
+                  "pm.test('No password in response', () => pm.expect(res.user).to.not.have.property('password'));",
+                  "pm.test('No password_hash in response', () => pm.expect(res.user).to.not.have.property('password_hash'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin Beta\",\n  \"email\": \"admin.beta@example.com\",\n  \"password\": \"Password@123\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Token is JWT format', () => pm.expect(res.token).to.match(/^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+$/));",
+                  "pm.test('Token is not empty', () => pm.expect(res.token).to.not.be.empty);",
+                  "pm.test('User object present', () => pm.expect(res.user).to.be.an('object'));",
+                  "pm.test('User id is number', () => pm.expect(res.user.id).to.be.a('number'));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('token', res.token);",
+                  "  pm.collectionVariables.set('userId', String(res.user.id));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin.beta@example.com\",\n  \"password\": \"Password@123\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Get Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has id', () => pm.expect(res.id).to.be.a('number'));",
+                  "pm.test('Has email', () => pm.expect(res.email).to.include('@'));",
+                  "pm.test('Has role', () => pm.expect(res.role).to.be.a('string'));",
+                  "pm.test('No password exposed', () => pm.expect(res).to.not.have.property('password_hash'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/auth/profile"
+          }
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Has message', () => pm.expect(res.message).to.be.a('string'));"] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/auth/logout"
+          }
+        },
+        {
+          "name": "Login Wrong Password (401 strict)",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('Status is 401', () => pm.response.to.have.status(401));","const res = pm.response.json();","pm.test('Message exact', () => pm.expect(res.message).to.eql('No token provided'));"] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin.beta@example.com\",\n  \"password\": \"WrongPassword123\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Papers",
+      "item": [
+        {
+          "name": "Submit Paper",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('paper.id is number', () => pm.expect(res.paper.id).to.be.a('number'));",
+                  "pm.test('paper.status is draft or submitted', () => pm.expect(['draft','submitted']).to.include(res.paper.status));",
+                  "pm.test('paper.author_id matches logged in user', () => pm.expect(String(res.paper.author_id)).to.eql(pm.collectionVariables.get('userId')));",
+                  "pm.collectionVariables.set('paperId', String(res.paper.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"AI Driven Drug Discovery\",\n  \"abstract\": \"This study explores AI techniques for accelerating novel drug candidate identification.\",\n  \"journal_name\": \"International Journal of AI Research\",\n  \"file_path\": \"/uploads/ai-drug-discovery.pdf\"\n}" },
+            "url": "{{baseUrl}}/api/papers"
+          }
+        },
+        {
+          "name": "Get All Papers",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Response is array', () => pm.expect(res).to.be.an('array'));","pm.test('Response time < 2000ms', () => pm.expect(pm.response.responseTime).to.be.below(2000));"] }
+            }
+          ],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/papers" }
+        },
+        {
+          "name": "Get My Papers",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Response is array', () => pm.expect(res).to.be.an('array'));","pm.test('Response time < 2000ms', () => pm.expect(pm.response.responseTime).to.be.below(2000));"] }
+            }
+          ],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/papers/my" }
+        },
+        {
+          "name": "Get Paper By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Response is object', () => pm.expect(res).to.be.an('object'));","pm.test('Response time < 2000ms', () => pm.expect(pm.response.responseTime).to.be.below(2000));"] }
+            }
+          ],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/papers/{{paperId}}" }
+        },
+        {
+          "name": "Update Paper Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","const reqBody = JSON.parse(pm.request.body.raw);","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Updated status matches request body', () => pm.expect(res.paper.status).to.eql(reqBody.status));"] }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" },
+            "url": "{{baseUrl}}/api/papers/{{paperId}}/status"
+          }
+        },
+        {
+          "name": "Delete Paper",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 200 or 204', () => pm.expect([200,204]).to.include(pm.response.code));","pm.test('Has message', () => pm.expect(res.message).to.be.a('string'));"] }
+            }
+          ],
+          "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/papers/{{paperId}}" }
+        },
+        {
+          "name": "Protected Route Without Token (401 strict)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 401', () => pm.response.to.have.status(401));","pm.test('Message strict', () => pm.expect(res.message).to.eql('No token provided'));"] } }],
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/papers/my" }
+        },
+        {
+          "name": "Access Admin Route as Researcher (403 strict)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 403', () => pm.response.to.have.status(403));","pm.test('Message strict', () => pm.expect(res.message).to.eql('Access denied'));"] } }],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/papers" }
+        },
+        {
+          "name": "Submit Paper Missing Title (400 strict)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 400', () => pm.response.to.have.status(400));","pm.test('Validation errors strict', () => pm.expect(res.errors).to.be.an('array').with.length.above(0));"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"abstract\": \"This request is intentionally missing title.\",\n  \"journal_name\": \"Validation Journal\"\n}" },
+            "url": "{{baseUrl}}/api/papers"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grants",
+      "item": [
+        {
+          "name": "Apply Grant",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 201', () => pm.response.to.have.status(201));","pm.test('grant.id is number', () => pm.expect(res.grant.id).to.be.a('number'));","pm.test('grant.status is applied', () => pm.expect(res.grant.status).to.eql('applied'));","pm.test('amount_requested is positive number', () => pm.expect(res.grant.amount_requested).to.be.above(0));","pm.collectionVariables.set('grantId', String(res.grant.id));"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Neural Interfaces Grant\",\n  \"description\": \"Funding request for neural interface experimentation and prototyping.\",\n  \"amount_requested\": 150000,\n  \"deadline\": \"2026-12-31\"\n}" },
+            "url": "{{baseUrl}}/api/grants"
+          }
+        },
+        {
+          "name": "Get All Grants",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Response is array', () => pm.expect(res).to.be.an('array'));","pm.test('Response time < 2000ms', () => pm.expect(pm.response.responseTime).to.be.below(2000));"] } }],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/grants" }
+        },
+        {
+          "name": "Get My Grants",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Response is array', () => pm.expect(res).to.be.an('array'));","pm.test('Response time < 2000ms', () => pm.expect(pm.response.responseTime).to.be.below(2000));"] } }],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/grants/my" }
+        },
+        {
+          "name": "Get Grant By ID",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Response is object', () => pm.expect(res).to.be.an('object'));","pm.test('Response time < 2000ms', () => pm.expect(pm.response.responseTime).to.be.below(2000));"] } }],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/grants/{{grantId}}" }
+        },
+        {
+          "name": "Update Grant Status",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","const reqBody = JSON.parse(pm.request.body.raw);","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Updated status matches request body', () => pm.expect(res.grant.status).to.eql(reqBody.status));"] } }],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\",\n  \"amount_approved\": 125000\n}" },
+            "url": "{{baseUrl}}/api/grants/{{grantId}}/status"
+          }
+        },
+        {
+          "name": "Record Grant Utilization",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 201', () => pm.response.to.have.status(201));","pm.test('amount_used is number', () => pm.expect(res.utilization.amount_used).to.be.a('number'));","pm.test('amount_used does not exceed approved amount', () => pm.expect(res.utilization.amount_used).to.be.at.most(res.utilization.amount_approved));"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"amount_used\": 35000,\n  \"description\": \"Purchased lab equipment and software licenses\"\n}" },
+            "url": "{{baseUrl}}/api/grants/{{grantId}}/utilize"
+          }
+        },
+        {
+          "name": "Apply Grant Missing Amount (400 strict)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 400', () => pm.response.to.have.status(400));","pm.test('Validation errors strict', () => pm.expect(res.errors).to.be.an('array').with.length.above(0));"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Broken Request\",\n  \"description\": \"Missing amount_requested for validation test\",\n  \"deadline\": \"2026-12-31\"\n}" },
+            "url": "{{baseUrl}}/api/grants"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Submit Review",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 201', () => pm.response.to.have.status(201));","pm.test('review.paper_id matches {{paperId}}', () => pm.expect(String(res.review.paper_id)).to.eql(pm.collectionVariables.get('paperId')));","pm.test('review.reviewer_id is number', () => pm.expect(res.review.reviewer_id).to.be.a('number'));","pm.collectionVariables.set('reviewId', String(res.review.id));"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"paper_id\": {{paperId}},\n  \"comments\": \"Strong methodology, but expand on baseline comparisons.\",\n  \"status\": \"needs_revision\"\n}" },
+            "url": "{{baseUrl}}/api/reviews"
+          }
+        },
+        {
+          "name": "Get Reviews For Paper",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Response is array', () => pm.expect(res).to.be.an('array'));","pm.test('Response time < 2000ms', () => pm.expect(pm.response.responseTime).to.be.below(2000));"] } }],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/reviews/paper/{{paperId}}" }
+        },
+        {
+          "name": "Update Review",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","const reqBody = JSON.parse(pm.request.body.raw);","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Updated status matches request body', () => pm.expect(res.review.status).to.eql(reqBody.status));"] } }],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"comments\": \"Revisions addressed; ready for acceptance.\",\n  \"status\": \"approved\"\n}" },
+            "url": "{{baseUrl}}/api/reviews/{{reviewId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Submit Progress Report",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 201', () => pm.response.to.have.status(201));","pm.test('report.grant_id matches {{grantId}}', () => pm.expect(String(res.report.grant_id)).to.eql(pm.collectionVariables.get('grantId')));"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"grant_id\": {{grantId}},\n  \"report_text\": \"Completed data collection for phase 1 and initiated preprocessing pipeline.\",\n  \"status\": \"submitted\"\n}" },
+            "url": "{{baseUrl}}/api/reports"
+          }
+        },
+        {
+          "name": "Get All Reports",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Response is array', () => pm.expect(res).to.be.an('array'));","pm.test('Response time < 2000ms', () => pm.expect(pm.response.responseTime).to.be.below(2000));"] } }],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/reports" }
+        },
+        {
+          "name": "Get Reports By Grant",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Response is array', () => pm.expect(res).to.be.an('array'));","pm.test('Response time < 2000ms', () => pm.expect(pm.response.responseTime).to.be.below(2000));"] } }],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/reports/grant/{{grantId}}" }
+        },
+        {
+          "name": "Generate Grant Summary",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const res = pm.response.json();","pm.test('Status is 200', () => pm.response.to.have.status(200));","pm.test('Has summary field', () => pm.expect(res.summary).to.be.a('string'));","pm.test('Has total_utilized field', () => pm.expect(res.total_utilized).to.be.a('number'));","pm.test('Has reports array', () => pm.expect(res.reports).to.be.an('array'));"] } }],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/reports/generate/{{grantId}}" }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "paperId", "value": "1" },
+    { "key": "grantId", "value": "1" },
+    { "key": "reviewId", "value": "1" }
+  ]
+}

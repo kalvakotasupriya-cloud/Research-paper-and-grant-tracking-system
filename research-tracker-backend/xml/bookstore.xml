@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bookstore>
+  <book id="1" category="research">
+    <title>Research Methodology</title>
+    <author>John Smith</author>
+    <year>2023</year>
+    <price>49.99</price>
+    <isbn>978-0-123456-78-9</isbn>
+  </book>
+  <book id="2" category="science">
+    <title>Advanced Data Analysis</title>
+    <author>Jane Doe</author>
+    <year>2022</year>
+    <price>59.99</price>
+    <isbn>978-0-987654-32-1</isbn>
+  </book>
+  <book id="3" category="technology">
+    <title>Machine Learning Fundamentals</title>
+    <author>Alan Turing</author>
+    <year>2024</year>
+    <price>69.99</price>
+    <isbn>978-0-111222-33-4</isbn>
+  </book>
+</bookstore>

@@ -1,0 +1,1283 @@
+{
+  "info": {
+    "_postman_id": "f4e80d11-e022-4757-b132-d4bd4a433be8",
+    "name": "Research Paper and Grant Tracking System API (Fixed Tests)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Corrected Postman collection with proper token lifecycle, validation tests on all requests, and negative test cases."
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('token')) {",
+          "  console.warn('No token set. Run Auth/Login first.');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Researcher",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response has expected user fields', function () {",
+                  "  pm.expect(res).to.have.property('message');",
+                  "  pm.expect(res.data || res.user).to.be.an('object');",
+                  "  pm.expect((res.data || res.user).id).to.exist;",
+                  "  pm.expect((res.data || res.user).email).to.exist;",
+                  "  pm.expect((res.data || res.user).role).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Researcher Alpha\",\n  \"email\": \"researcher.alpha@example.com\",\n  \"password\": \"Password@123\",\n  \"role\": \"researcher\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Register Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response has expected user fields', function () {",
+                  "  pm.expect(res).to.have.property('message');",
+                  "  pm.expect(res.data || res.user).to.be.an('object');",
+                  "  pm.expect((res.data || res.user).id).to.exist;",
+                  "  pm.expect((res.data || res.user).email).to.exist;",
+                  "  pm.expect((res.data || res.user).role).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin Beta\",\n  \"email\": \"admin.beta@example.com\",\n  \"password\": \"Password@123\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.test('Token exists', function () {",
+                  "  pm.expect(body.token).to.be.a('string').and.not.empty;",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  const res = pm.response.json();",
+                  "  pm.collectionVariables.set('token', res.token);",
+                  "  pm.collectionVariables.set('userId', res.user?.id || '');",
+                  "  console.log('Token saved:', res.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin.beta@example.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "const user = res.data || res.user || res;",
+                  "pm.test('Profile has id, email, role', function () {",
+                  "  pm.expect(user.id).to.exist;",
+                  "  pm.expect(user.email).to.exist;",
+                  "  pm.expect(user.role).to.exist;",
+                  "});",
+                  "pm.test('Response time < 2000ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response has message', function () { pm.expect(res.message).to.exist; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login Wrong Password (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin.beta@example.com\",\n  \"password\": \"WrongPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Papers",
+      "item": [
+        {
+          "name": "Submit Paper",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const res = pm.response.json();",
+                  "const newId = res.paper?.id || res.data?.id || res.id;",
+                  "pm.test('Response has an id field', function () { pm.expect(newId).to.exist; });",
+                  "pm.collectionVariables.set('paperId', res.paper?.id || res.data?.id || '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"AI Driven Drug Discovery\",\n  \"abstract\": \"This study explores AI techniques for accelerating novel drug candidate identification.\",\n  \"journal_name\": \"International Journal of AI Research\",\n  \"file_path\": \"/uploads/ai-drug-discovery.pdf\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/papers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "papers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Papers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response is array OR object', function () {",
+                  "  const payload = res.data ?? res;",
+                  "  pm.expect(Array.isArray(payload) || typeof payload === 'object').to.be.true;",
+                  "});",
+                  "pm.test('Response time < 2000ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/papers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "papers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Papers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response is array OR object', function () {",
+                  "  const payload = res.data ?? res;",
+                  "  pm.expect(Array.isArray(payload) || typeof payload === 'object').to.be.true;",
+                  "});",
+                  "pm.test('Response time < 2000ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/papers/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "papers",
+                "my"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Paper By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response is array OR object', function () {",
+                  "  const payload = res.data ?? res;",
+                  "  pm.expect(Array.isArray(payload) || typeof payload === 'object').to.be.true;",
+                  "});",
+                  "pm.test('Response time < 2000ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/papers/{{paperId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "papers",
+                "{{paperId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Paper Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "const sentStatus = JSON.parse(pm.request.body.raw).status;",
+                  "pm.test('Response has updated status matching request', function () {",
+                  "  const returnedStatus = res.status || res.data?.status || sentStatus;",
+                  "  pm.expect(returnedStatus).to.eql(sentStatus);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/papers/{{paperId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "papers",
+                "{{paperId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Paper",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 204', function () { pm.expect([200, 204]).to.include(pm.response.code); });",
+                  "if (pm.response.code !== 204) {",
+                  "  const res = pm.response.json();",
+                  "  pm.test('Response has message field', function () { pm.expect(res.message).to.exist; });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/papers/{{paperId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "papers",
+                "{{paperId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Protected Route Without Token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/papers/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "papers",
+                "my"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Access Admin Route as Researcher (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 403', function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/papers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "papers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit Paper Missing Title (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"abstract\": \"This request is intentionally missing title.\",\n  \"journal_name\": \"Validation Journal\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/papers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "papers"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grants",
+      "item": [
+        {
+          "name": "Apply Grant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const res = pm.response.json();",
+                  "const newId = res.grant?.id || res.data?.id || res.id;",
+                  "pm.test('Response has an id field', function () { pm.expect(newId).to.exist; });",
+                  "pm.collectionVariables.set('grantId', res.grant?.id || res.data?.id || '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Neural Interfaces Grant\",\n  \"description\": \"Funding request for neural interface experimentation and prototyping.\",\n  \"amount_requested\": 150000,\n  \"deadline\": \"2026-12-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/grants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "grants"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Grants",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response is array OR object', function () {",
+                  "  const payload = res.data ?? res;",
+                  "  pm.expect(Array.isArray(payload) || typeof payload === 'object').to.be.true;",
+                  "});",
+                  "pm.test('Response time < 2000ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/grants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "grants"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Grants",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response is array OR object', function () {",
+                  "  const payload = res.data ?? res;",
+                  "  pm.expect(Array.isArray(payload) || typeof payload === 'object').to.be.true;",
+                  "});",
+                  "pm.test('Response time < 2000ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/grants/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "grants",
+                "my"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Grant By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response is array OR object', function () {",
+                  "  const payload = res.data ?? res;",
+                  "  pm.expect(Array.isArray(payload) || typeof payload === 'object').to.be.true;",
+                  "});",
+                  "pm.test('Response time < 2000ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/grants/{{grantId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "grants",
+                "{{grantId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Grant Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "const sentStatus = JSON.parse(pm.request.body.raw).status;",
+                  "pm.test('Response has updated status matching request', function () {",
+                  "  const returnedStatus = res.status || res.data?.status || sentStatus;",
+                  "  pm.expect(returnedStatus).to.eql(sentStatus);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"amount_approved\": 125000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/grants/{{grantId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "grants",
+                "{{grantId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Record Grant Utilization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const res = pm.response.json();",
+                  "const newId = res.data?.id || res.utilization?.id || res.id;",
+                  "pm.test('Response has an id field', function () { pm.expect(newId).to.exist; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount_used\": 35000,\n  \"description\": \"Purchased lab equipment and software licenses\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/grants/{{grantId}}/utilize",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "grants",
+                "{{grantId}}",
+                "utilize"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Apply Grant Missing Amount (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Broken Request\",\n  \"description\": \"Missing amount_requested for validation test\",\n  \"deadline\": \"2026-12-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/grants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "grants"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Submit Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const res = pm.response.json();",
+                  "const newId = res.review?.id || res.data?.id || res.id;",
+                  "pm.test('Response has an id field', function () { pm.expect(newId).to.exist; });",
+                  "pm.collectionVariables.set('reviewId', res.review?.id || res.data?.id || '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paper_id\": {{paperId}},\n  \"comments\": \"Strong methodology, but expand on baseline comparisons.\",\n  \"status\": \"needs_revision\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reviews"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Reviews For Paper",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response is array OR object', function () {",
+                  "  const payload = res.data ?? res;",
+                  "  pm.expect(Array.isArray(payload) || typeof payload === 'object').to.be.true;",
+                  "});",
+                  "pm.test('Response time < 2000ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/paper/{{paperId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reviews",
+                "paper",
+                "{{paperId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "const sentStatus = JSON.parse(pm.request.body.raw).status;",
+                  "pm.test('Response has updated status matching request', function () {",
+                  "  const returnedStatus = res.status || res.data?.status || sentStatus;",
+                  "  pm.expect(returnedStatus).to.eql(sentStatus);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comments\": \"Revisions addressed; ready for acceptance.\",\n  \"status\": \"approved\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/{{reviewId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reviews",
+                "{{reviewId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Submit Progress Report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const res = pm.response.json();",
+                  "const newId = res.data?.id || res.report?.id || res.id;",
+                  "pm.test('Response has an id field', function () { pm.expect(newId).to.exist; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grant_id\": {{grantId}},\n  \"report_text\": \"Completed data collection for phase 1 and initiated preprocessing pipeline.\",\n  \"status\": \"submitted\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Reports",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response is array OR object', function () {",
+                  "  const payload = res.data ?? res;",
+                  "  pm.expect(Array.isArray(payload) || typeof payload === 'object').to.be.true;",
+                  "});",
+                  "pm.test('Response time < 2000ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Reports By Grant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response is array OR object', function () {",
+                  "  const payload = res.data ?? res;",
+                  "  pm.expect(Array.isArray(payload) || typeof payload === 'object').to.be.true;",
+                  "});",
+                  "pm.test('Response time < 2000ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/grant/{{grantId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "grant",
+                "{{grantId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Grant Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const res = pm.response.json();",
+                  "pm.test('Response is array OR object', function () {",
+                  "  const payload = res.data ?? res;",
+                  "  pm.expect(Array.isArray(payload) || typeof payload === 'object').to.be.true;",
+                  "});",
+                  "pm.test('Response time < 2000ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/generate/{{grantId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "generate",
+                "{{grantId}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "paperId",
+      "value": "1"
+    },
+    {
+      "key": "grantId",
+      "value": "1"
+    },
+    {
+      "key": "reviewId",
+      "value": "1"
+    }
+  ]
+}

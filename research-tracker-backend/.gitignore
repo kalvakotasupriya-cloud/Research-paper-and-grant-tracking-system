@@ -1,5 +1,7 @@
 node_modules/
 .env
-dist/
 *.log
+npm-debug.log*
+dist/
+coverage/
 .DS_Store
