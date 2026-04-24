@@ -5,7 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import session from "express-session";
-import { testDbConnection } from "./config/db.js";
+import pool, { testDbConnection } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import paperRoutes from "./routes/paperRoutes.js";
 import grantRoutes from "./routes/grantRoutes.js";
@@ -17,7 +17,26 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors({ origin: true, credentials: true }));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
@@ -35,6 +54,26 @@ app.use(
 
 app.get("/", (req, res) => {
   res.json({ success: true, message: "Research Tracker API is running" });
+});
+
+app.get("/api/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({
+      status: "OK",
+      environment: process.env.NODE_ENV,
+      timestamp: new Date().toISOString(),
+      uptime: `${Math.floor(process.uptime())}s`,
+      database: "connected",
+      version: process.env.npm_package_version || "1.0.0"
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: "ERROR",
+      database: "disconnected",
+      error: err.message
+    });
+  }
 });
 
 app.use("/api/auth", authRoutes);

@@ -7,7 +7,12 @@ export const setUnauthorizedHandler = (handler) => {
 };
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000",
+  withCredentials: true,
+  timeout: 15000,
+  headers: {
+    "Content-Type": "application/json"
+  }
 });
 
 api.interceptors.request.use((config) => {
@@ -21,14 +26,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.code === "ECONNABORTED") {
+      return Promise.reject(new Error("Request timed out. Please try again."));
+    }
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      if (unauthorizedHandler) {
-        unauthorizedHandler();
-      } else {
-        window.location.href = "/login";
-      }
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
