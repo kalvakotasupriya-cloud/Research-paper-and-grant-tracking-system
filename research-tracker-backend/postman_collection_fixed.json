@@ -131,7 +131,6 @@
                   "  const res = pm.response.json();",
                   "  pm.collectionVariables.set('token', res.token);",
                   "  pm.collectionVariables.set('userId', res.user?.id || '');",
-                  "  console.log('Token saved:', res.token);",
                   "}"
                 ]
               }

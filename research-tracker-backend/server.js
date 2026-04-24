@@ -16,6 +16,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+app.set("trust proxy", 1);
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -37,6 +38,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
+app.options("*", cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
@@ -46,8 +48,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000
     }
   })
 );
@@ -108,5 +112,17 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+if (process.env.NODE_ENV === "production") {
+  const BACKEND_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+  setInterval(async () => {
+    try {
+      await fetch(`${BACKEND_URL}/api/health`);
+      console.log("Keepalive ping sent");
+    } catch (err) {
+      console.error("Keepalive failed:", err.message);
+    }
+  }, 14 * 60 * 1000);
+}
 
 startServer();

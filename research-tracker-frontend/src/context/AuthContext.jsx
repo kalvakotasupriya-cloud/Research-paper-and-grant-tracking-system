@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [role, setRole] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const clearAuth = () => {
     setUser(null);
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = async () => {
       const storedToken = localStorage.getItem("token");
       if (!storedToken) {
-        setLoading(false);
+        setAuthLoading(false);
         return;
       }
 
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         clearAuth();
       } finally {
-        setLoading(false);
+        setAuthLoading(false);
       }
     };
 
@@ -76,12 +76,12 @@ export const AuthProvider = ({ children }) => {
       user,
       token,
       role,
-      loading,
+      authLoading,
       login,
       logout,
       isAuthenticated
     }),
-    [user, token, role, loading]
+    [user, token, role, authLoading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
