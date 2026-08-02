@@ -197,9 +197,9 @@ Refer to `POSTMAN_TESTING_GUIDE.md` for detailed API testing instructions.
 
 ## Live Deployment
 
-- Frontend: https://research-tracker-frontend-e90e1s80n-supriya12.vercel.app
-- Backend: https://research-tracker-backend-meitio8zl-supriya12.vercel.app
-- Health Check: https://research-tracker-backend-meitio8zl-supriya12.vercel.app/api/health
+- Public URL: https://research-tracker-frontend-1eik3h43d-supriya12.vercel.app
+- API: https://research-tracker-frontend-1eik3h43d-supriya12.vercel.app/api
+- Health Check: https://research-tracker-frontend-1eik3h43d-supriya12.vercel.app/api/health
 
 ## License
 
