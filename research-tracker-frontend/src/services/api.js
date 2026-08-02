@@ -7,7 +7,7 @@ export const setUnauthorizedHandler = (handler) => {
 };
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://research-tracker-backend-meitio8zl-supriya12.vercel.app",
   withCredentials: true,
   timeout: 15000,
   headers: {

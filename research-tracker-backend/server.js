@@ -1,4 +1,6 @@
 import http from "http";
+import path from "path";
+import { fileURLToPath } from "url";
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -16,12 +18,16 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 app.set("trust proxy", 1);
 
+const frontendUrl = process.env.FRONTEND_URL || "https://research-tracker-frontend-qdbb55e6g-supriya12.vercel.app";
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  process.env.FRONTEND_URL
+  frontendUrl,
+  "https://research-tracker-frontend-qdbb55e6g-supriya12.vercel.app"
 ].filter(Boolean);
 
 app.use(
@@ -44,7 +50,7 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "research-tracker-session-secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -56,6 +62,8 @@ app.use(
   })
 );
 
+app.locals.dbConnected = false;
+
 app.get("/", (req, res) => {
   res.json({ success: true, message: "Research Tracker API is running" });
 });
@@ -63,6 +71,7 @@ app.get("/", (req, res) => {
 app.get("/api/health", async (req, res) => {
   try {
     await pool.query("SELECT 1");
+    app.locals.dbConnected = true;
     res.json({
       status: "OK",
       environment: process.env.NODE_ENV,
@@ -72,9 +81,12 @@ app.get("/api/health", async (req, res) => {
       version: process.env.npm_package_version || "1.0.0"
     });
   } catch (err) {
-    res.status(500).json({
-      status: "ERROR",
+    app.locals.dbConnected = false;
+    res.status(503).json({
+      status: "DEGRADED",
       database: "disconnected",
+      environment: process.env.NODE_ENV,
+      timestamp: new Date().toISOString(),
       error: err.message
     });
   }
@@ -104,14 +116,21 @@ const server = http.createServer(app);
 const startServer = async () => {
   try {
     await testDbConnection();
-    server.listen(PORT, () => {
-      console.log(`Server started on port ${PORT}`);
-    });
+    app.locals.dbConnected = true;
+    console.log("Database connection established");
   } catch (error) {
-    console.error("Database connection failed:", error.message);
-    process.exit(1);
+    app.locals.dbConnected = false;
+    console.error("Database connection failed at startup:", error.message);
   }
+
+  server.listen(PORT, () => {
+    console.log(`Server started on port ${PORT}`);
+  });
 };
+
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+  startServer();
+}
 
 if (process.env.NODE_ENV === "production") {
   const BACKEND_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
@@ -125,4 +144,3 @@ if (process.env.NODE_ENV === "production") {
   }, 14 * 60 * 1000);
 }
 
-startServer();

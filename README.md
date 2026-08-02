@@ -195,6 +195,12 @@ Refer to `POSTMAN_TESTING_GUIDE.md` for detailed API testing instructions.
 
 ---
 
+## Live Deployment
+
+- Frontend: https://research-tracker-frontend-e90e1s80n-supriya12.vercel.app
+- Backend: https://research-tracker-backend-meitio8zl-supriya12.vercel.app
+- Health Check: https://research-tracker-backend-meitio8zl-supriya12.vercel.app/api/health
+
 ## License
 
 This project is licensed under the MIT License.
