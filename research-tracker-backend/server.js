@@ -123,24 +123,16 @@ const startServer = async () => {
     console.error("Database connection failed at startup:", error.message);
   }
 
-  server.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
-  });
+  if (!process.env.VERCEL) {
+    server.listen(PORT, () => {
+      console.log(`Server started on port ${PORT}`);
+    });
+  }
 };
 
-if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+if (!process.env.VERCEL) {
   startServer();
 }
 
-if (process.env.NODE_ENV === "production") {
-  const BACKEND_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
-  setInterval(async () => {
-    try {
-      await fetch(`${BACKEND_URL}/api/health`);
-      console.log("Keepalive ping sent");
-    } catch (err) {
-      console.error("Keepalive failed:", err.message);
-    }
-  }, 14 * 60 * 1000);
-}
+export default app;
 
