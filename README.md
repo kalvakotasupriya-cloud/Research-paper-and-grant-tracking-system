@@ -197,7 +197,7 @@ Refer to `POSTMAN_TESTING_GUIDE.md` for detailed API testing instructions.
 
 ## Live Deployment
 
-- Public URL: https://research-tracker-frontend-1eik3h43d-supriya12.vercel.app
+- Public URL: https://research-tracker-frontend-lilac.vercel.app
 - API: https://research-tracker-frontend-1eik3h43d-supriya12.vercel.app/api
 - Health Check: https://research-tracker-frontend-1eik3h43d-supriya12.vercel.app/api/health
 
